@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Document Translator · English → Spanish (Mexico)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f5f6f8;--card:#fff;--ink:#1c2230;--muted:#5d6676;--faint:#8a92a1;--line:#e2e5ea;--line2:#cfd4dc;
+  --accent:#0f6e5f;--accent-ink:#fff;--accent-soft:#e3f3ef;
+  --ok:#17803d;--ok-soft:#e5f4ea;--warn:#a85a07;--warn-soft:#fdf1e0;--err:#b42323;--err-soft:#fbe9e9;--info:#2e5ea8;--info-soft:#e8eff9;
+  --radius:10px;--shadow:0 1px 2px rgba(16,24,40,.05);
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;color:var(--ink);font-size:14px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#14171c;--card:#1c2027;--ink:#e7e9ee;--muted:#a3abb8;--faint:#7c8492;--line:#2c323b;--line2:#3a414c;
+  --accent:#3fb59e;--accent-ink:#0d1a17;--accent-soft:#183a33;
+  --ok:#55c27a;--ok-soft:#173523;--warn:#e9a84f;--warn-soft:#3a2b14;--err:#ef7b7b;--err-soft:#3d1c1c;--info:#7fa8e8;--info-soft:#1c2a40;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line2);background:var(--card);border-radius:8px;padding:7px 14px;min-height:36px}
+button:hover{border-color:var(--faint)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.drop:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button.primary:hover{filter:brightness(1.07)}
+button.ghost{border-color:transparent;background:transparent;color:var(--accent);padding:6px 10px}
+button.small{min-height:28px;padding:3px 10px;font-size:13px}
+button[disabled]{opacity:.55;cursor:not-allowed}
+select,input[type=text],input[type=search],textarea{border:1px solid var(--line2);background:var(--card);border-radius:8px;padding:7px 10px;min-height:36px}
+.top{display:flex;align-items:center;gap:14px;padding:14px 28px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.logo{width:38px;height:38px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:13px;letter-spacing:.5px}
+.top h1{font-size:17px;margin:0;font-weight:650}
+.top .sub{font-size:12.5px;color:var(--muted)}
+.spacer{flex:1}
+.badge{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid transparent;white-space:nowrap}
+.badge .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.b-grey{background:var(--bg);color:var(--muted);border-color:var(--line)}
+.b-ok{background:var(--ok-soft);color:var(--ok)}
+.b-warn{background:var(--warn-soft);color:var(--warn)}
+.b-err{background:var(--err-soft);color:var(--err)}
+.b-info{background:var(--info-soft);color:var(--info)}
+nav.tabs{display:flex;gap:4px;padding:0 28px;background:var(--card);border-bottom:1px solid var(--line)}
+nav.tabs button{border:none;border-bottom:2px solid transparent;border-radius:0;background:none;padding:11px 14px;color:var(--muted);font-weight:600}
+nav.tabs button[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent)}
+main{max-width:1280px;margin:0 auto;padding:22px 28px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card h2{font-size:15px;margin:0 0 4px;font-weight:650}
+.card h2 .step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:12px;margin-right:8px}
+.muted{color:var(--muted)}
+.faint{color:var(--faint);font-size:12.5px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.engines{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px;margin:12px 0}
+.eng{border:1px solid var(--line);border-radius:9px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
+.eng .t{font-weight:600}
+.eng .d{font-size:12.5px;color:var(--muted)}
+.eng .badge{margin-left:auto}
+.bar{height:8px;background:var(--bg);border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.msg{padding:10px 12px;border-radius:8px;font-size:13px;margin-top:10px}
+.msg.warn{background:var(--warn-soft);color:var(--warn)}
+.msg.err{background:var(--err-soft);color:var(--err)}
+.msg.info{background:var(--info-soft);color:var(--info)}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:2px dashed var(--line2);border-radius:12px;padding:30px;text-align:center;cursor:pointer;margin:12px 0;transition:.15s}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.drop .big{font-size:15px;font-weight:600}
+.types{display:flex;gap:6px;margin-top:4px}
+.ft{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;color:#fff}
+.ft.docx{background:#2b579a}.ft.xlsx{background:#217346}.ft.pptx{background:#c43e1c}.ft.vsdx{background:#3955a3}
+.opts{display:flex;gap:22px;flex-wrap:wrap;align-items:center;font-size:13.5px}
+.opts label{display:flex;gap:8px;align-items:center;cursor:pointer}
+.opts input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent)}
+.fileq{display:grid;gap:10px;margin-bottom:16px}
+.fcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px}
+.fcard.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.fcard .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fcard .st{font-size:12.5px;color:var(--muted)}
+.fcard .bar{margin-top:6px}
+.score{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:14px 0}
+.metric{background:var(--bg);border-radius:9px;padding:12px 14px}
+.metric .l{font-size:12px;color:var(--muted)}
+.metric .v{font-size:22px;font-weight:650;margin-top:2px}
+.metric .s{font-size:12px;color:var(--muted)}
+.notes{margin:0 0 12px;padding:0;list-style:none;display:grid;gap:6px}
+.notes li{font-size:13px;padding:8px 12px;border-radius:8px;background:var(--info-soft);color:var(--info)}
+.notes li.warn{background:var(--warn-soft);color:var(--warn)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0 12px}
+.chip{border-radius:999px;padding:4px 12px;min-height:30px;font-size:13px}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tablewrap{border:1px solid var(--line);border-radius:9px;overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{position:sticky;top:0;background:var(--bg);text-align:left;font-weight:600;color:var(--muted);font-size:12px;padding:9px 10px;border-bottom:1px solid var(--line);z-index:1}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.es{cursor:text}
+td.es:hover{background:var(--accent-soft)}
+td.es textarea{width:100%;min-height:70px;resize:vertical}
+.flag{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:5px;margin:0 4px 4px 0}
+.f-error{background:var(--err-soft);color:var(--err)}
+.f-review{background:var(--warn-soft);color:var(--warn)}
+.f-info{background:var(--info-soft);color:var(--info)}
+.f-ok{background:var(--ok-soft);color:var(--ok)}
+.sbar{width:54px;height:6px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:4px}
+.sbar i{display:block;height:100%}
+.loc{font-size:12px;color:var(--faint);white-space:nowrap}
+.hidden{display:none!important}
+.gtable td{vertical-align:middle}
+.gtable input,.gtable select{width:100%}
+.help h3{font-size:14.5px;margin:18px 0 6px}
+.help p,.help li{color:var(--muted);max-width:900px}
+.help code{background:var(--bg);padding:1px 5px;border-radius:4px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:10px 18px;border-radius:9px;font-size:13.5px;z-index:20;opacity:0;transition:.25s;pointer-events:none}
+.toast.on{opacity:1}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width:760px){.top,main,nav.tabs{padding-left:14px;padding-right:14px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="logo" aria-hidden="true">EN<br>ES</div>
+  <div>
+    <h1>Document Translator</h1>
+    <div class="sub">English → Spanish (Mexico) · runs on this computer, nothing is uploaded</div>
+  </div>
+  <div class="spacer"></div>
+  <span id="netBadge" class="badge b-grey" title="Shows whether anything is sent over the network"><span class="dot"></span><span id="netText">Engines not set up</span></span>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-tab="translate">Translate</button>
+  <button role="tab" aria-selected="false" data-tab="glossary">Glossary</button>
+  <button role="tab" aria-selected="false" data-tab="memory">Translation memory</button>
+  <button role="tab" aria-selected="false" data-tab="help">Help</button>
+</nav>
+
+<main>
+<!-- ============ TRANSLATE ============ -->
+<section id="tab-translate">
+  <div class="card" id="engineCard">
+    <h2><span class="step">1</span>Engines</h2>
+    <div class="muted" id="engineIntro">One-time setup. The engines download once, then work without internet. Your documents never leave this computer.</div>
+    <div class="engines">
+      <div class="eng">
+        <div><div class="t">Translator · TranslateGemma 4B</div><div class="d">Does the translation. About 2.9 GB, downloaded once and kept in this browser. Runs on your graphics chip.</div></div>
+        <span class="badge b-grey" id="stGemma"><span class="dot"></span>Not set up</span>
+      </div>
+      <div class="eng">
+        <div><div class="t">Checker · Edge built-in translator</div><div class="d">A separate model that translates the Spanish back to English, so the work isn't checked by the same engine.</div></div>
+        <span class="badge b-grey" id="stEdge"><span class="dot"></span>Not set up</span>
+      </div>
+    </div>
+    <div id="dlWrap" class="hidden" style="margin:6px 0 12px">
+      <div class="bar"><i id="dlBar"></i></div>
+      <div class="faint" id="dlText" style="margin-top:5px">Starting…</div>
+    </div>
+    <div class="row">
+      <label for="mode" class="muted">Mode</label>
+      <select id="mode">
+        <option value="accurate">Accurate: TranslateGemma translates, Edge checks (recommended)</option>
+        <option value="fast">Fast: Edge translates and checks (quicker, less accurate)</option>
+      </select>
+      <button class="primary" id="setupBtn">Set up engines</button>
+    </div>
+    <div id="envMsg"></div>
+  </div>
+
+  <div class="card">
+    <h2><span class="step">2</span>Add documents</h2>
+    <label class="drop" id="drop" tabindex="-1">
+      <input type="file" id="fileIn" multiple accept=".docx,.xlsx,.pptx,.vsdx">
+      <div class="big">Drop files here, or click to choose</div>
+      <div class="faint">Layout, styles, tables, shapes and formulas stay as they are. Only the text is translated.</div>
+      <div class="types"><span class="ft docx">Word</span><span class="ft xlsx">Excel</span><span class="ft pptx">PowerPoint</span><span class="ft vsdx">Visio</span></div>
+    </label>
+    <div class="opts">
+      <label><input type="checkbox" id="optFit" checked> Keep page count close to the original</label>
+      <label><input type="checkbox" id="optTM" checked> Reuse saved translations</label>
+      <label title="Lines whose back-translation score is below this are flagged for review">Flag score below
+        <input type="range" id="optThr" min="30" max="80" step="5" value="55" style="width:110px">
+        <b id="thrVal">55</b></label>
+    </div>
+    <div class="faint" style="margin-top:6px">Keeping the page count shrinks Word font and spacing slightly (never below about 88%) and fits text inside PowerPoint and Visio shapes.</div>
+  </div>
+
+  <div class="fileq" id="queue"></div>
+
+  <div class="card hidden" id="review">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h2 id="rvTitle">Review</h2>
+        <div class="faint" id="rvSub"></div>
+      </div>
+      <div class="row">
+        <button class="primary" id="btnDownload">Download Spanish file</button>
+        <button id="btnSheet">Export review sheet</button>
+        <button id="btnImport">Import reviewed sheet</button>
+        <input type="file" id="sheetIn" accept=".xlsx" class="hidden">
+        <button id="btnRebuild" class="hidden">Rebuild file with my changes</button>
+      </div>
+    </div>
+    <div class="metrics" id="rvMetrics"></div>
+    <ul class="notes" id="rvNotes"></ul>
+    <div class="chips" id="rvChips" role="group" aria-label="Filter lines"></div>
+    <div class="row" style="margin-bottom:10px">
+      <input type="search" id="rvSearch" placeholder="Search English or Spanish text" style="flex:1;min-width:220px">
+    </div>
+    <div class="tablewrap">
+      <table id="rvTable">
+        <thead><tr>
+          <th style="width:42px">#</th>
+          <th style="width:21%">English</th>
+          <th style="width:23%">Spanish <span style="font-weight:400">(click to edit)</span></th>
+          <th style="width:19%">Back to English (check)</th>
+          <th style="width:70px">Score</th>
+          <th style="width:200px">Flags</th>
+          <th style="width:96px"></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="row" style="justify-content:center;margin-top:10px"><button class="ghost hidden" id="btnMore">Show more lines</button></div>
+  </div>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section id="tab-glossary" class="hidden">
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h2>Glossary</h2>
+        <div class="muted">"Translate as" fixes a term so it's translated the same way every time. "Keep as is" leaves codes and names untouched (CFDI, RFC, product names).</div>
+      </div>
+      <div class="row">
+        <button id="gAdd" class="primary">Add term</button>
+        <button id="gImport">Import Excel</button><input type="file" id="gIn" accept=".xlsx,.csv" class="hidden">
+        <button id="gExport">Export Excel</button>
+        <button id="gReset" class="ghost">Reset to starter list</button>
+      </div>
+    </div>
+    <div class="msg info">The starter list is a suggestion. Ask your Mexico team to confirm the Spanish terms against the Spanish D365 screens, then export it and share the file so everyone uses the same list.</div>
+    <div class="row" style="margin:12px 0"><input type="search" id="gSearch" placeholder="Search terms" style="flex:1"><span class="faint" id="gCount"></span></div>
+    <div class="tablewrap"><table class="gtable"><thead><tr><th style="width:36%">English</th><th style="width:20%">Rule</th><th style="width:36%">Spanish (Mexico)</th><th></th></tr></thead><tbody id="gBody"></tbody></table></div>
+  </div>
+</section>
+
+<!-- ============ MEMORY ============ -->
+<section id="tab-memory" class="hidden">
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h2>Translation memory</h2>
+        <div class="muted">Every translated line is saved here, so the same English always gets the same Spanish. Lines you approve or correct always win.</div>
+      </div>
+      <div class="row">
+        <button id="mExport">Export</button>
+        <button id="mImport">Import</button><input type="file" id="mIn" accept=".json" class="hidden">
+        <button id="mClearMachine" class="ghost">Forget machine lines</button>
+        <button id="mClear" class="ghost">Clear all</button>
+      </div>
+    </div>
+    <div class="metrics" id="mMetrics"></div>
+    <div class="row" style="margin-bottom:10px"><input type="search" id="mSearch" placeholder="Search memory" style="flex:1"></div>
+    <div class="tablewrap"><table><thead><tr><th style="width:40%">English</th><th style="width:40%">Spanish</th><th>Status</th></tr></thead><tbody id="mBody"></tbody></table></div>
+    <div class="faint" style="margin-top:8px">Showing up to 200 lines. Search to find others. To share approved wording with the team, use Export and have them Import it.</div>
+  </div>
+</section>
+
+<!-- ============ HELP ============ -->
+<section id="tab-help" class="hidden">
+  <div class="card help">
+    <h2>How to use it</h2>
+    <ol>
+      <li>Open this page in <b>Microsoft Edge 148 or later</b> (or Chrome 138+). Click <b>Set up engines</b> once. The download takes a while the first time only.</li>
+      <li>Drop your Word, Excel, PowerPoint or Visio files. Each file is translated, checked and rebuilt in the same format.</li>
+      <li>Open the review, look at anything flagged, then click <b>Download Spanish file</b>.</li>
+    </ol>
+    <h3>How to prove nothing leaves your computer</h3>
+    <p>After the engines are set up, turn off Wi-Fi (or unplug the network) and translate a file. It still works. The badge at the top counts every network request made while a file is being translated. It should stay at 0.</p>
+    <h3>How to read the checks (you don't need to know Spanish)</h3>
+    <ul>
+      <li><b>Back-translation score (0–100):</b> a second, independent engine translates the Spanish back to English, and the tool measures how close that is to your original. 70+ means the meaning came back almost word for word. 55–70 means the meaning is usually right but worded differently. Below your threshold, the line is flagged. Short labels (1–3 words) often score low even when correct, so they're only marked "short".</li>
+      <li><b>Numbers and codes:</b> every amount, date, percentage, account number, code, e-mail and link must appear in the Spanish exactly as in the English. If not, it's an error.</li>
+      <li><b>Glossary:</b> terms set to "Translate as" must use your Spanish term. Terms set to "Keep as is" must appear unchanged.</li>
+      <li><b>Untranslated / length:</b> flags text left in English and lines that came out much shorter or longer than expected (a sign that something was dropped or added).</li>
+    </ul>
+    <h3>Working with a Spanish-speaking colleague</h3>
+    <p>Click <b>Export review sheet</b>. It's an Excel file with English, Spanish, back-translation, score and flags. Your colleague fills in <b>Corrected Spanish</b> or marks <b>Approved = Y</b>. Import it back with <b>Import reviewed sheet</b>, then <b>Rebuild file</b>. Their corrections go into the translation memory and are reused in every future document.</p>
+    <h3>Good to know</h3>
+    <ul>
+      <li>If a paragraph mixes formatting (for example, one bold word in the middle), the translated paragraph takes the formatting of its first run. Headings, tables, lists and styles are not affected.</li>
+      <li>Excel: cell text is translated. Formulas, numbers and sheet names are not. If a formula looks up a text value (like "Yes"), check it after translation. The review lists those workbooks.</li>
+      <li>Word page count: Word recalculates pages when you open the file. The figure shown here is an estimate.</li>
+      <li>After a large glossary change, use <b>Translation memory → Forget machine lines</b>, so older lines are translated again with the new terms.</li>
+    </ul>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+'use strict';
+/* =========================================================================
+   Settings and state
+   ========================================================================= */
+const MODEL_ID = 'onnx-community/translategemma-text-4b-it-ONNX';
+const TJS_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2';
+const TARGET = 'es-MX';
+const MOCK = new URLSearchParams(location.search).has('mock'); // test mode with a fake engine (developer use)
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('on'), 2600); }
+
+const S = {
+  mode: localStorage.getItem('mxtr.mode') || 'accurate',
+  gemma: null, gemmaReady: false, gemmaLoading: false,
+  edgeEnEs: null, edgeEsEn: null,
+  files: [], current: null, busy: false,
+  job: { active: false, net: 0, urls: [] },
+  tm: new Map(), glossary: [],
+  filter: 'attention', search: '', shown: 50,
+};
+
+/* =========================================================================
+   Network watch (offline proof)
+   ========================================================================= */
+function noteNet(url) {
+  if (!S.job.active) return;
+  S.job.net++; S.job.urls.push(url); renderBadge();
+}
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.addEventListener('message', (e) => { if (e.data?.type === 'net') noteNet(e.data.url); });
+}
+try {
+  new PerformanceObserver((list) => {
+    if (navigator.serviceWorker?.controller) return; // service worker already reports
+    for (const e of list.getEntries()) if (e.transferSize > 0) noteNet(e.name);
+  }).observe({ type: 'resource', buffered: false });
+} catch {}
+addEventListener('online', renderBadge); addEventListener('offline', renderBadge);
+
+function renderBadge() {
+  const b = $('#netBadge'), t = $('#netText');
+  const ready = S.mode === 'fast' ? !!S.edgeEnEs : S.gemmaReady;
+  let cls = 'b-grey', txt = 'Engines not set up', tip = 'Set up the engines to start.';
+  if (S.gemmaLoading) { cls = 'b-info'; txt = 'Loading engine…'; }
+  else if (ready) {
+    if (S.job.active || S.job.done) {
+      if (S.job.net === 0) { cls = 'b-ok'; txt = (navigator.onLine ? 'Offline-safe' : 'Fully offline') + ' · 0 network requests'; tip = 'Nothing has been sent over the network while translating.'; }
+      else { cls = 'b-warn'; txt = S.job.net + ' network request' + (S.job.net > 1 ? 's' : '') + ' while translating'; tip = 'Requests made:\n' + S.job.urls.slice(-8).join('\n') + '\n\nThese are engine or library files being fetched, not your document. Turn Wi-Fi off to be fully sure.'; }
+    } else { cls = 'b-ok'; txt = navigator.onLine ? 'Ready · works offline' : 'Ready · fully offline'; tip = 'Engines are on this computer.'; }
+  }
+  b.className = 'badge ' + cls; t.textContent = txt; b.title = tip;
+}
+
+/* =========================================================================
+   Storage: glossary (localStorage) and translation memory (IndexedDB)
+   ========================================================================= */
+const STARTER_GLOSSARY = [
+  // Keep as is (Mexico tax and system terms, codes, product names)
+  ...['CFDI', 'RFC', 'SAT', 'CURP', 'UUID', 'IVA', 'ISR', 'IEPS', 'DIOT', 'PAC', 'Carta Porte', 'Complemento de pago', 'Addenda', 'SPEI', 'CLABE', 'Dynamics 365', 'D365FO', 'D365', 'Microsoft', 'Azure', 'Power BI', 'Excel', 'Visio', 'SQL', 'API', 'XML', 'JSON', 'PDF', 'LCS', 'UAT', 'SIT', 'FDD', 'TDD', 'BRD', 'SOW', 'KT'].map((en) => ({ en, rule: 'keep', es: '' })),
+  // Translate as (common D365 Finance terms; confirm against the Spanish D365 screens)
+  ...[
+    ['Legal entity', 'Entidad jurídica'], ['Main account', 'Cuenta principal'], ['Chart of accounts', 'Plan de cuentas'],
+    ['Financial dimension', 'Dimensión financiera'], ['General ledger', 'Contabilidad general'], ['Vendor invoice', 'Factura de proveedor'],
+    ['Free text invoice', 'Factura de texto libre'], ['Purchase order', 'Pedido de compra'], ['Sales order', 'Pedido de ventas'],
+    ['Product receipt', 'Recepción de productos'], ['Number sequence', 'Secuencia numérica'], ['Fixed asset', 'Activo fijo'],
+    ['Bank reconciliation', 'Conciliación bancaria'], ['Data entity', 'Entidad de datos'], ['Workflow', 'Flujo de trabajo'],
+    ['Vendor', 'Proveedor'], ['Customer', 'Cliente'], ['Journal', 'Diario'],
+  ].map(([en, es]) => ({ en, rule: 'fixed', es })),
+];
+function loadGlossary() {
+  try { const g = JSON.parse(localStorage.getItem('mxtr.glossary')); if (Array.isArray(g)) return g; } catch {}
+  return STARTER_GLOSSARY.map((x) => ({ ...x }));
+}
+function saveGlossary() { localStorage.setItem('mxtr.glossary', JSON.stringify(S.glossary)); }
+
+const DB = {
+  db: null,
+  open() {
+    return new Promise((res) => {
+      const r = indexedDB.open('mxtr', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('tm', { keyPath: 'src' });
+      r.onsuccess = () => { this.db = r.result; res(); };
+      r.onerror = () => res();
+    });
+  },
+  all() { return new Promise((res) => { if (!this.db) return res([]); const q = this.db.transaction('tm').objectStore('tm').getAll(); q.onsuccess = () => res(q.result || []); q.onerror = () => res([]); }); },
+  put(rec) { if (!this.db) return; try { this.db.transaction('tm', 'readwrite').objectStore('tm').put(rec); } catch {} },
+  del(src) { if (!this.db) return; try { this.db.transaction('tm', 'readwrite').objectStore('tm').delete(src); } catch {} },
+  clear() { if (!this.db) return; try { this.db.transaction('tm', 'readwrite').objectStore('tm').clear(); } catch {} },
+};
+function tmPut(rec) { rec.updated = Date.now(); S.tm.set(rec.src, rec); DB.put(rec); }
+
+/* =========================================================================
+   Engines
+   ========================================================================= */
+const WORKER_SRC = `
+import { pipeline, env } from '${TJS_URL}';
+env.allowLocalModels = false;
+let gen = null;
+const langFallback = {};
+async function run(text, src, tgt, maxTokens) {
+  const tryOnce = async (s, t) => {
+    const messages = [{ role: 'user', content: [{ type: 'text', source_lang_code: s, target_lang_code: t, text }] }];
+    const r = await gen(messages, { max_new_tokens: maxTokens, do_sample: false });
+    const g = r[0].generated_text;
+    let out = Array.isArray(g) ? g[g.length - 1].content : g;
+    if (Array.isArray(out)) out = out.map(x => x.text || '').join('');
+    return String(out || '').trim();
+  };
+  const t = langFallback[tgt] || tgt, s = langFallback[src] || src;
+  try { return await tryOnce(s, t); }
+  catch (e) {
+    const t2 = t.split('-')[0], s2 = s.split('-')[0];
+    if (t2 === t && s2 === s) throw e;
+    langFallback[tgt] = t2; langFallback[src] = s2;
+    return await tryOnce(s2, t2);
+  }
+}
+self.onmessage = async (e) => {
+  const m = e.data;
+  if (m.type === 'load') {
+    try {
+      gen = await pipeline('text-generation', m.model, { dtype: 'q4', device: 'webgpu',
+        progress_callback: (p) => self.postMessage({ type: 'progress', p }) });
+      await run('Hello', 'en', 'es', 8);
+      self.postMessage({ type: 'ready' });
+    } catch (err) { self.postMessage({ type: 'error', error: String(err && err.message || err) }); }
+  } else if (m.type === 'translate') {
+    try { self.postMessage({ type: 'result', id: m.id, text: await run(m.text, m.src, m.tgt, m.max) }); }
+    catch (err) { self.postMessage({ type: 'result', id: m.id, error: String(err && err.message || err) }); }
+  }
+};`;
+
+class GemmaEngine {
+  constructor() { this.w = null; this.pending = new Map(); this.n = 0; this.files = {}; }
+  load(onProgress) {
+    return new Promise((resolve, reject) => {
+      this.w = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' })), { type: 'module' });
+      this.w.onmessage = (e) => {
+        const m = e.data;
+        if (m.type === 'progress') {
+          const p = m.p;
+          if (p.status === 'progress' && p.total) { this.files[p.file] = { loaded: p.loaded, total: p.total }; }
+          if (p.status === 'done' && this.files[p.file]) this.files[p.file].loaded = this.files[p.file].total;
+          const f = Object.values(this.files), L = f.reduce((a, x) => a + x.loaded, 0), T = f.reduce((a, x) => a + x.total, 0);
+          onProgress(T ? L / T : 0, L, T, p.status);
+        } else if (m.type === 'ready') resolve();
+        else if (m.type === 'error') reject(new Error(m.error));
+        else if (m.type === 'result') {
+          const cb = this.pending.get(m.id); this.pending.delete(m.id);
+          if (cb) m.error ? cb.reject(new Error(m.error)) : cb.resolve(m.text);
+        }
+      };
+      this.w.onerror = (e) => reject(new Error(e.message || 'The translation engine could not start.'));
+      this.w.postMessage({ type: 'load', model: MODEL_ID });
+    });
+  }
+  translate(text, src, tgt) {
+    const id = ++this.n;
+    const max = Math.min(1600, Math.ceil(text.length / 2.2) + 64);
+    return new Promise((resolve, reject) => { this.pending.set(id, { resolve, reject }); this.w.postMessage({ type: 'translate', id, text, src, tgt, max }); });
+  }
+}
+
+// Fake engine for automated testing (?mock in the URL). Never used otherwise.
+const MOCK_WORDS = { the: 'el', invoice: 'factura', vendor: 'proveedor', customer: 'cliente', and: 'y', of: 'de', is: 'es', for: 'para', process: 'proceso', payment: 'pago', posted: 'registrado', with: 'con', total: 'total', amount: 'importe', account: 'cuenta' };
+const mockEng = {
+  enes: async (t) => { await sleep(5); return t.split(/(\s+)/).map((w) => MOCK_WORDS[w.toLowerCase()] || w).join('') + ' (es)'; },
+  esen: async (t) => { await sleep(5); const inv = Object.fromEntries(Object.entries(MOCK_WORDS).map(([a, b]) => [b, a])); return t.replace(/ \(es\)$/, '').split(/(\s+)/).map((w) => inv[w.toLowerCase()] || w).join(''); },
+};
+
+async function engineTranslate(text) {
+  if (MOCK) return mockEng.enes(text);
+  if (S.mode === 'fast') return (await S.edgeEnEs.translate(text)).trim();
+  return S.gemma.translate(text, 'en', TARGET);
+}
+async function engineBack(text) {
+  if (MOCK) return mockEng.esen(text);
+  if (S.edgeEsEn) return (await S.edgeEsEn.translate(text)).trim();
+  if (S.gemmaReady) return S.gemma.translate(text, TARGET, 'en');
+  return '';
+}
+
+function setPill(id, cls, text) { const el = $(id); el.className = 'badge ' + cls; el.innerHTML = '<span class="dot"></span>' + esc(text); }
+function envMsg(html, kind = 'warn') { $('#envMsg').innerHTML = html ? `<div class="msg ${kind}">${html}</div>` : ''; }
+
+async function hasWebGPU() { try { return !!(navigator.gpu && await navigator.gpu.requestAdapter()); } catch { return false; } }
+async function gemmaCached() {
+  try { const c = await caches.open('transformers-cache'); const k = await c.keys(); return k.some((r) => r.url.includes('translategemma') && r.url.includes('.onnx')); } catch { return false; }
+}
+function edgeSupported() { return 'Translator' in self; }
+
+async function setupEdge(fromClick) {
+  if (MOCK) { setPill('#stEdge', 'b-ok', 'Ready (test mode)'); S.edgeEsEn = { translate: mockEng.esen }; S.edgeEnEs = { translate: mockEng.enes }; return true; }
+  if (!edgeSupported()) { setPill('#stEdge', 'b-err', 'Needs Edge 148+'); return false; }
+  try {
+    const a = await Translator.availability({ sourceLanguage: 'es', targetLanguage: 'en' });
+    if (a === 'unavailable') { setPill('#stEdge', 'b-err', 'Not available here'); return false; }
+    if (a !== 'available' && !fromClick) { setPill('#stEdge', 'b-grey', 'Not set up'); return false; }
+    setPill('#stEdge', 'b-info', a === 'available' ? 'Loading…' : 'Downloading…');
+    const mon = (m) => m.addEventListener('downloadprogress', (e) => setPill('#stEdge', 'b-info', 'Downloading ' + Math.round(e.loaded * 100) + '%'));
+    // Create both directions now, while the click still counts as a user action
+    const p1 = Translator.create({ sourceLanguage: 'es', targetLanguage: 'en', monitor: mon });
+    const p2 = Translator.create({ sourceLanguage: 'en', targetLanguage: 'es', monitor: mon }).catch(() => null);
+    S.edgeEsEn = await p1; S.edgeEnEs = await p2;
+    setPill('#stEdge', 'b-ok', 'Ready');
+    return true;
+  } catch (e) { setPill('#stEdge', 'b-err', 'Could not start'); console.warn(e); return false; }
+}
+
+async function setupGemma() {
+  if (MOCK) { S.gemmaReady = true; setPill('#stGemma', 'b-ok', 'Ready (test mode)'); return true; }
+  if (S.gemmaReady || S.gemmaLoading) return S.gemmaReady;
+  if (!(await hasWebGPU())) {
+    setPill('#stGemma', 'b-err', 'Needs WebGPU');
+    envMsg('This computer or browser doesn\'t offer WebGPU, which the accurate engine needs. Update Edge, or check <code>edge://gpu</code> shows WebGPU as enabled. Meanwhile you can use <b>Fast</b> mode.');
+    return false;
+  }
+  S.gemmaLoading = true; renderBadge();
+  const cached = await gemmaCached();
+  setPill('#stGemma', 'b-info', cached ? 'Loading from this computer…' : 'Downloading…');
+  $('#dlWrap').classList.remove('hidden');
+  try { await navigator.storage?.persist?.(); } catch {}
+  S.gemma = new GemmaEngine();
+  const t0 = Date.now();
+  try {
+    await S.gemma.load((f, L, T) => {
+      $('#dlBar').style.width = Math.round(f * 100) + '%';
+      const gb = (x) => (x / 1e9).toFixed(2) + ' GB';
+      const sec = (Date.now() - t0) / 1000, rate = L / Math.max(sec, 1), left = rate > 0 ? (T - L) / rate : 0;
+      $('#dlText').textContent = T ? `${cached ? 'Loading' : 'Downloading'} ${gb(L)} of ${gb(T)} · ${Math.round(f * 100)}%` + (left > 5 && f < 1 ? ` · about ${fmtDur(left)} left` : '') : 'Preparing…';
+      if (f >= 1) $('#dlText').textContent = 'Starting the engine on your graphics chip…';
+    });
+    S.gemmaReady = true; setPill('#stGemma', 'b-ok', 'Ready');
+    $('#dlWrap').classList.add('hidden');
+    return true;
+  } catch (e) {
+    setPill('#stGemma', 'b-err', 'Could not start');
+    envMsg('The translation engine couldn\'t start: ' + esc(e.message) + '<br>Close other heavy apps and try again. If it keeps failing, use <b>Fast</b> mode.', 'err');
+    return false;
+  } finally { S.gemmaLoading = false; renderBadge(); }
+}
+
+async function setupAll(fromClick) {
+  $('#setupBtn').disabled = true;
+  const edgeP = setupEdge(fromClick); // start first so the click still counts as a user action
+  let ok;
+  if (S.mode === 'accurate') { const [g] = await Promise.all([setupGemma(), edgeP]); ok = g; }
+  else { await edgeP; ok = !!S.edgeEnEs; }
+  if (!S.edgeEsEn && S.gemmaReady && S.mode === 'accurate') envMsg('Edge\'s built-in translator isn\'t available, so the check uses TranslateGemma itself. Checks still run, but an independent checker is better: use Edge 148 or later.', 'info');
+  if (S.mode === 'fast' && !S.edgeEnEs) envMsg('Fast mode needs Edge 148+ (or Chrome 138+) with the built-in translator.', 'err');
+  $('#setupBtn').disabled = false;
+  $('#setupBtn').textContent = ok ? 'Engines ready' : 'Try again';
+  if (ok) $('#engineIntro').textContent = 'Engines are on this computer. You can translate with Wi-Fi turned off.';
+  renderBadge();
+  if (ok) runQueue();
+  return ok;
+}
+function enginesReady() { return MOCK || (S.mode === 'fast' ? !!S.edgeEnEs : S.gemmaReady); }
+
+/* =========================================================================
+   Text protection and checks
+   ========================================================================= */
+const RX = {
+  url: /\b(?:https?:\/\/|www\.)[^\s<>"]+[^\s<>".,;:!?)]/gi,
+  email: /\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b/g,
+  code: /\b(?=[A-Za-z0-9._\/-]*\d)(?=[A-Za-z0-9._\/-]*[A-Za-z])[A-Za-z0-9][A-Za-z0-9._\/-]*[A-Za-z0-9]\b/g,
+  path: /\b[A-Za-z]:\\[^\s]+|\b[\w-]+\.(?:xlsx|xls|docx|doc|pdf|csv|xml|json|txt|vsdx|pptx|zip)\b/gi,
+  num: /\d+(?:[.,:\/]\d+)*/g,
+};
+const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function termRegex(term, flags = 'g') {
+  const a = /^\w/.test(term) ? '\\b' : '', b = /\w$/.test(term) ? '\\b' : '';
+  return new RegExp(a + reEsc(term) + b, flags);
+}
+function pluralTermSrc(term) { return (/^\w/.test(term) ? '\\b' : '') + reEsc(term) + '(?:s|es)?' + (/\w$/.test(term) ? '\\b' : ''); }
+function keepTerms() { return S.glossary.filter((g) => g.rule === 'keep' && g.en.trim()).map((g) => g.en.trim()); }
+function fixedTerms() { return S.glossary.filter((g) => g.rule === 'fixed' && g.en.trim() && g.es.trim()); }
+
+// Replace protected pieces with {1}, {2}… so the engine copies them unchanged.
+function mask(text, withFixed) {
+  const items = [];
+  const parts = [RX.url.source, RX.email.source, RX.path.source, RX.code.source];
+  const terms = keepTerms().sort((a, b) => b.length - a.length).map((t) => termRegex(t).source);
+  const fixed = withFixed ? fixedTerms().sort((a, b) => b.en.length - a.en.length) : [];
+  const fixedSrc = fixed.map((g) => pluralTermSrc(g.en));
+  // fixed terms first so "Vendor invoice" wins over shorter matches
+  const all = new RegExp([...fixedSrc, ...parts, ...terms].map((p) => '(?:' + p + ')').join('|'), 'gi');
+  const keepSet = new Set(keepTerms().map((t) => t.toLowerCase()));
+  const masked = text.replace(all, (m) => {
+    let out = m;
+    if (withFixed && !keepSet.has(m.toLowerCase())) {
+      const g = fixed.find((g) => new RegExp('^' + reEsc(g.en) + '(?:s|es)?$', 'i').test(m));
+      if (g) {
+        const plural = m.length > g.en.length;
+        let es = g.es;
+        if (plural) es = es.split(' ').map((w, i) => (i === 0 ? pluralEs(w) : w)).join(' ');
+        if (m[0] === m[0].toLowerCase() && g.en[0] !== g.en[0].toLowerCase()) es = es[0].toLowerCase() + es.slice(1);
+        out = es;
+      }
+    }
+    items.push({ orig: m, out });
+    return '{' + items.length + '}';
+  });
+  return { masked, items };
+}
+function pluralEs(w) { if (/[aeiouáéó]$/i.test(w)) return w + 's'; if (/z$/i.test(w)) return w.slice(0, -1) + 'ces'; if (/ón$/i.test(w)) return w.slice(0, -2) + 'ones'; return w + 'es'; }
+function unmask(text, items) {
+  const seen = new Set();
+  let out = text.replace(/\{\s*(\d+)\s*\}/g, (m, n) => { const it = items[+n - 1]; if (!it) return m; seen.add(+n); return it.out; });
+  const missing = items.filter((_, i) => !seen.has(i + 1));
+  return { text: out, missing };
+}
+
+const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+function needsTranslation(s) {
+  if (!/[A-Za-z]{2,}/.test(s)) return false;
+  let rest = s.replace(RX.url, ' ').replace(RX.email, ' ').replace(RX.path, ' ').replace(RX.code, ' ');
+  for (const t of keepTerms()) rest = rest.replace(termRegex(t, 'gi'), ' ');
+  return /[A-Za-z]{2,}/.test(rest);
+}
+
+// chrF: character n-gram F-score (0–100) between the original English and the back-translation
+function chrF(a, b) {
+  const A = norm(a).replace(/\s+/g, ''), B = norm(b).replace(/\s+/g, '');
+  if (!A || !B) return 0;
+  let P = 0, R = 0, n = 0;
+  for (let k = 1; k <= 6; k++) {
+    const ga = grams(A, k), gb = grams(B, k);
+    const ta = A.length - k + 1, tb = B.length - k + 1;
+    if (ta <= 0 || tb <= 0) continue;
+    let m = 0; for (const [g, c] of ga) m += Math.min(c, gb.get(g) || 0);
+    P += m / tb; R += m / ta; n++;
+  }
+  if (!n) return 0; P /= n; R /= n;
+  const b2 = 4; return P + R === 0 ? 0 : Math.round(((1 + b2) * P * R) / (b2 * P + R) * 100);
+}
+function grams(s, k) { const m = new Map(); for (let i = 0; i + k <= s.length; i++) { const g = s.substr(i, k); m.set(g, (m.get(g) || 0) + 1); } return m; }
+
+const EN_STOP = new Set(['the', 'and', 'of', 'to', 'with', 'for', 'is', 'are', 'this', 'that', 'will', 'be', 'from', 'by', 'which', 'should', 'when', 'where', 'it', 'on']);
+function wordsOf(s) { return (s.match(/[A-Za-zÀ-ÿ]+/g) || []); }
+
+function runChecks(src, es, back) {
+  const flags = [];
+  const thr = +$('#optThr').value;
+  const words = wordsOf(src).length;
+  // Numbers
+  const nS = (src.match(RX.num) || []).sort(), nE = (es.match(RX.num) || []).sort();
+  const missN = diffMulti(nS, nE);
+  if (missN.length) flags.push({ sev: 'error', code: 'number', text: 'Number changed or missing: ' + missN.slice(0, 3).join(', ') });
+  // Codes, links, e-mails and keep terms
+  const prot = [...(src.match(RX.url) || []), ...(src.match(RX.email) || []), ...(src.match(RX.code) || []), ...(src.match(RX.path) || [])];
+  for (const t of keepTerms()) { const m = src.match(termRegex(t, 'gi')); if (m) prot.push(...m); }
+  const missP = [...new Set(prot)].filter((p) => !es.includes(p));
+  if (missP.length) flags.push({ sev: 'error', code: 'code', text: 'Not kept as is: ' + missP.slice(0, 3).join(', ') });
+  // Glossary
+  const nes = norm(es);
+  for (const g of fixedTerms()) {
+    if (!new RegExp(pluralTermSrc(g.en), 'i').test(src)) continue;
+    if (keepTerms().some((k) => termRegex(k, 'i').test(src) && termRegex(g.en, 'i').test(k))) continue;
+    const rx = new RegExp(norm(g.es).split(/\s+/).map((w) => reEsc(w) + '(?:s|es)?').join('\\s+'), 'i');
+    const rxPl = new RegExp(norm(g.es).split(/\s+/).map((w, i) => (i === 0 ? reEsc(norm(pluralEs(w))) : reEsc(w) + '(?:s|es)?')).join('\\s+'), 'i');
+    if (!rx.test(nes) && !rxPl.test(nes)) flags.push({ sev: 'review', code: 'glossary', text: `Glossary: "${g.en}" should be "${g.es}"` });
+  }
+  // Untranslated
+  if (norm(src).trim() === norm(es).trim() && words >= 2) flags.push({ sev: 'error', code: 'untranslated', text: 'Left in English' });
+  else {
+    const w = wordsOf(es).map((x) => x.toLowerCase()); const stop = w.filter((x) => EN_STOP.has(x)).length;
+    if (w.length >= 4 && stop / w.length > 0.22) flags.push({ sev: 'review', code: 'untranslated', text: 'Partly left in English' });
+  }
+  // Length
+  const ratio = es.length / Math.max(1, src.length);
+  if (src.length >= 25 && (ratio < 0.65 || ratio > 1.9)) flags.push({ sev: 'review', code: 'length', text: ratio < 0.65 ? 'Much shorter than the English: something may be missing' : 'Much longer than the English: something may be added' });
+  // Back-translation score
+  const score = back ? chrF(src, back) : null;
+  if (score !== null) {
+    if (words <= 3) { if (score < 25) flags.push({ sev: 'info', code: 'short', text: 'Short label: check the meaning' }); }
+    else if (score < thr - 15) flags.push({ sev: 'review', code: 'score', text: 'Meaning may have changed' });
+    else if (score < thr) flags.push({ sev: 'review', code: 'score', text: 'Low back-translation score' });
+  }
+  return { flags, score };
+}
+function diffMulti(a, b) { const m = new Map(); for (const x of b) m.set(x, (m.get(x) || 0) + 1); const out = []; for (const x of a) { const c = m.get(x) || 0; if (c) m.set(x, c - 1); else out.push(x); } return out; }
+function sevOf(rec) {
+  if (rec.status === 'approved') return 'approved';
+  const f = rec.flags || [];
+  if (f.some((x) => x.sev === 'error')) return 'error';
+  if (f.some((x) => x.sev === 'review')) return 'review';
+  return 'ok';
+}
+
+/* =========================================================================
+   Translating one piece of text (with protection, glossary and checks)
+   ========================================================================= */
+function splitLong(s) {
+  if (s.length <= 700) return [s];
+  const sent = s.split(/(?<=[.!?;:])\s+/); const out = []; let cur = '';
+  for (const x of sent) { if ((cur + ' ' + x).length > 600 && cur) { out.push(cur); cur = x; } else cur = cur ? cur + ' ' + x : x; }
+  if (cur) out.push(cur); return out;
+}
+async function translateLine(line) {
+  const extra = [];
+  const chunks = splitLong(line);
+  const outs = [];
+  for (const ch of chunks) {
+    const m = mask(ch, false);
+    let es = await engineTranslate(m.masked);
+    let u = unmask(es, m.items);
+    if (u.missing.length) { // engine dropped a protected piece: translate without protection instead
+      es = await engineTranslate(ch); u = { text: es, missing: [] };
+      extra.push({ sev: 'info', code: 'protect', text: 'Protected items re-checked' });
+    }
+    let txt = u.text;
+    // Glossary: if a fixed term didn't come out as agreed, translate again with the term locked
+    const pre = runChecks(ch, txt, null).flags.filter((f) => f.code === 'glossary');
+    if (pre.length) {
+      const m2 = mask(ch, true);
+      const es2 = await engineTranslate(m2.masked);
+      const u2 = unmask(es2, m2.items);
+      if (!u2.missing.length) { txt = u2.text; extra.push({ sev: 'info', code: 'glossary-applied', text: 'Glossary term applied' }); }
+    }
+    outs.push(txt);
+  }
+  return { es: outs.join(' '), extra };
+}
+async function translateSegment(src) {
+  const core = src.trim();
+  const lines = core.split('\n');
+  const esLines = [], backLines = [], extra = [];
+  for (const ln of lines) {
+    if (!ln.trim() || !needsTranslation(ln)) { esLines.push(ln); backLines.push(ln); continue; }
+    const lead = ln.match(/^\s*/)[0], trail = ln.match(/\s*$/)[0];
+    const r = await translateLine(ln.trim());
+    extra.push(...r.extra);
+    esLines.push(lead + r.es + trail);
+    backLines.push(await engineBack(r.es));
+  }
+  const es = esLines.join('\n'), back = backLines.join('\n');
+  const c = runChecks(core, es, back);
+  const flags = dedupeFlags([...c.flags, ...extra]);
+  if (S.mode === 'fast' || !S.edgeEsEn) flags.push({ sev: 'info', code: 'self', text: 'Checked by the same engine' });
+  return { src: core, es, back, score: c.score, flags, status: 'machine', engine: MOCK ? 'test' : S.mode };
+}
+function dedupeFlags(f) { const s = new Set(); return f.filter((x) => { const k = x.code + x.text; if (s.has(k)) return false; s.add(k); return true; }); }
+
+/* =========================================================================
+   Office file handling (Word, PowerPoint, Excel, Visio)
+   ========================================================================= */
+const NS = {
+  W: 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
+  A: 'http://schemas.openxmlformats.org/drawingml/2006/main',
+  X: 'http://schemas.openxmlformats.org/spreadsheetml/2006/main',
+  V: 'http://schemas.microsoft.com/office/visio/2012/main',
+  XML: 'http://www.w3.org/XML/1998/namespace',
+};
+const MIME = {
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  vsdx: 'application/vnd.ms-visio.drawing',
+};
+const PARTS = {
+  docx: [[/^word\/(document|header\d*|footer\d*|footnotes|endnotes|comments)\.xml$/, 'W'], [/^word\/(diagrams\/(data|drawing)\d*|charts\/chart\d*)\.xml$/, 'A']],
+  pptx: [[/^ppt\/(slides\/slide\d+|notesSlides\/notesSlide\d+|diagrams\/(data|drawing)\d+|charts\/chart\d+)\.xml$/, 'A']],
+  xlsx: [[/^xl\/sharedStrings\.xml$/, 'SST'], [/^xl\/worksheets\/sheet\d+\.xml$/, 'SHEET'], [/^xl\/(charts\/chart\d+|drawings\/drawing\d+)\.xml$/, 'A']],
+  vsdx: [[/^visio\/pages\/page\d+\.xml$/, 'VTEXT'], [/^visio\/pages\/pages\.xml$/, 'VNAMES']],
+};
+function locOf(part) {
+  let m;
+  if (part === 'word/document.xml') return 'Body';
+  if ((m = part.match(/^word\/(header|footer)/))) return m[1] === 'header' ? 'Header' : 'Footer';
+  if (/footnotes|endnotes/.test(part)) return 'Footnote';
+  if (/comments/.test(part)) return 'Comment';
+  if (/diagrams/.test(part)) return 'SmartArt';
+  if (/charts/.test(part)) return 'Chart';
+  if ((m = part.match(/slides\/slide(\d+)/))) return 'Slide ' + m[1];
+  if ((m = part.match(/notesSlide(\d+)/))) return 'Notes ' + m[1];
+  if (/sharedStrings|worksheets/.test(part)) return 'Cell';
+  if (/drawings/.test(part)) return 'Text box';
+  if ((m = part.match(/pages\/page(\d+)/))) return 'Page ' + m[1];
+  if (/pages\.xml/.test(part)) return 'Page name';
+  return part;
+}
+
+function ownerOf(el, ns, name) { let n = el.parentNode; while (n && !(n.localName === name && n.namespaceURI === ns)) n = n.parentNode; return n; }
+function collectParas(doc, ns, part, units) {
+  const loc = locOf(part);
+  const brk = ns === NS.W ? ['br', 'cr', 'tab', 'ptab'] : ['br'];
+  for (const p of Array.from(doc.getElementsByTagNameNS(ns, 'p'))) {
+    let cur = [];
+    const flush = () => {
+      if (cur.length) {
+        const src = cur.map((n) => n.textContent).join('');
+        if (src.trim()) units.push({ part, loc, nodes: cur, src, ns, body: ns === NS.A ? ownerOf(p, NS.A, 'txBody') || ownerOf(p, p.parentNode?.namespaceURI, 'txBody') : null });
+      }
+      cur = [];
+    };
+    for (const el of Array.from(p.getElementsByTagNameNS(ns, '*'))) {
+      if (ownerOf(el, ns, 'p') !== p) continue;
+      const n = el.localName;
+      if (n === 't') { if (ns === NS.A && el.parentNode.localName !== 'r') { flush(); continue; } cur.push(el); }
+      else if (brk.includes(n)) flush();
+    }
+    flush();
+  }
+}
+// txBody in PowerPoint is in the "p" (presentation) namespace; find it by name regardless of namespace
+function findTxBody(el) { let n = el.parentNode; while (n && n.nodeType === 1) { if (n.localName === 'txBody') return n; n = n.parentNode; } return null; }
+
+function collectSST(doc, part, units, X) {
+  for (const si of Array.from(doc.getElementsByTagNameNS(X, 'si')).concat(Array.from(doc.getElementsByTagNameNS(X, 'is')))) {
+    const ts = Array.from(si.getElementsByTagNameNS(X, 't')).filter((t) => t.parentNode === si || (t.parentNode.localName === 'r' && t.parentNode.parentNode === si));
+    const src = ts.map((t) => t.textContent).join('');
+    if (src.trim()) units.push({ part, loc: locOf(part), nodes: ts, src, ns: X, xlsx: true });
+  }
+}
+function collectVisio(doc, part, units) {
+  for (const tx of Array.from(doc.getElementsByTagNameNS(NS.V, 'Text'))) {
+    const nodes = Array.from(tx.childNodes).filter((n) => n.nodeType === 3);
+    const src = nodes.map((n) => n.nodeValue).join('');
+    if (src.trim()) units.push({ part, loc: locOf(part), nodes, src, textNodes: true, shape: tx.parentNode });
+  }
+}
+function collectVisioNames(doc, part, units) {
+  for (const pg of Array.from(doc.getElementsByTagNameNS(NS.V, 'Page'))) {
+    const nm = pg.getAttribute('Name');
+    if (nm && /[A-Za-z]{2,}/.test(nm)) units.push({ part, loc: 'Page name', attrEl: pg, src: nm });
+  }
+}
+
+async function parseOffice(rec) {
+  const zip = await JSZip.loadAsync(rec.buf);
+  const parts = [], units = [];
+  const names = Object.keys(zip.files).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  const notes = [];
+  for (const name of names) {
+    const rule = PARTS[rec.type].find(([rx]) => rx.test(name));
+    if (!rule) continue;
+    const xml = await zip.file(name).async('string');
+    const doc = new DOMParser().parseFromString(xml, 'application/xml');
+    if (doc.getElementsByTagName('parsererror').length) { notes.push({ warn: true, text: 'Skipped a part that could not be read: ' + name }); continue; }
+    const X = doc.documentElement.namespaceURI;
+    parts.push({ name, doc, decl: /^\s*<\?xml/.test(xml) ? xml.match(/^\s*<\?xml[^>]*\?>/)[0] : '' });
+    const k = rule[1];
+    if (k === 'W') collectParas(doc, NS.W, name, units);
+    else if (k === 'A') collectParas(doc, NS.A, name, units);
+    else if (k === 'SST') collectSST(doc, name, units, X);
+    else if (k === 'SHEET') {
+      collectSST(doc, name, units, X);
+      if (doc.getElementsByTagNameNS(X, 'f').length) rec.hasFormulas = true;
+      if (doc.getElementsByTagNameNS(X, 'dataValidation').length) rec.hasValidation = true;
+    }
+    else if (k === 'VTEXT') collectVisio(doc, name, units);
+    else if (k === 'VNAMES') collectVisioNames(doc, name, units);
+  }
+  for (const u of units) if (u.ns === NS.A) u.body = findTxBody(u.nodes[0]);
+  return { zip, parts, units, notes };
+}
+
+function applyUnit(u, es) {
+  const lead = u.src.match(/^\s*/)[0], trail = u.src.match(/\s*$/)[0];
+  const val = lead + es + trail;
+  if (u.attrEl) { u.attrEl.setAttribute('Name', es); return; }
+  if (u.textNodes) { u.nodes[0].nodeValue = val; for (let i = 1; i < u.nodes.length; i++) u.nodes[i].nodeValue = ''; return; }
+  u.nodes[0].textContent = val;
+  if (u.ns === NS.W || u.xlsx) u.nodes[0].setAttributeNS(NS.XML, 'xml:space', 'preserve');
+  for (let i = 1; i < u.nodes.length; i++) u.nodes[i].textContent = '';
+}
+
+/* ---------- Layout: keep page count / fit text ---------- */
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+async function layoutDocx(P, rec, fit) {
+  const body = P.units.filter((u) => u.part === 'word/document.xml');
+  const en = body.reduce((a, u) => a + u.src.length, 0), es = body.reduce((a, u) => a + (u.out ?? u.src).length, 0);
+  const ratio = en ? es / en : 1;
+  rec.ratio = ratio;
+  let f = 1;
+  if (fit && ratio > 1.03) f = clamp(Math.sqrt(1.02 / ratio), 0.88, 1);
+  if (f > 0.98) f = 1; // too small to matter: leave the fonts alone
+  rec.fontFactor = f;
+  if (f < 0.999) {
+    const st = P.zip.file('word/styles.xml');
+    const extra = [];
+    if (st) {
+      const xml = await st.async('string');
+      const doc = new DOMParser().parseFromString(xml, 'application/xml');
+      P.parts.push({ name: 'word/styles.xml', doc, decl: (xml.match(/^\s*<\?xml[^>]*\?>/) || [''])[0] });
+      extra.push(doc);
+    }
+    const docs = [...P.parts.filter((p) => p.name.startsWith('word/') && !/diagrams|charts/.test(p.name)).map((p) => p.doc)];
+    for (const d of docs) {
+      for (const tag of ['sz', 'szCs']) for (const el of Array.from(d.getElementsByTagNameNS(NS.W, tag))) {
+        const v = +el.getAttributeNS(NS.W, 'val'); if (v) el.setAttributeNS(NS.W, 'w:val', String(Math.max(12, Math.round(v * f))));
+      }
+      for (const el of Array.from(d.getElementsByTagNameNS(NS.W, 'spacing'))) {
+        for (const a of ['before', 'after']) { const v = el.getAttributeNS(NS.W, a); if (v && /^\d+$/.test(v)) el.setAttributeNS(NS.W, 'w:' + a, String(Math.round(+v * f))); }
+      }
+    }
+  }
+  // Page estimate
+  const app = P.zip.file('docProps/app.xml');
+  if (app) { const m = (await app.async('string')).match(/<Pages>(\d+)<\/Pages>/); if (m) rec.srcPages = +m[1]; }
+  if (rec.srcPages) rec.estPages = Math.max(1, Math.round(rec.srcPages * ratio * f * f));
+}
+function layoutPptx(P, rec, fit) {
+  const groups = new Map();
+  for (const u of P.units) { if (!u.body) continue; const g = groups.get(u.body) || { en: 0, es: 0 }; g.en += u.src.length; g.es += (u.out ?? u.src).length; groups.set(u.body, g); }
+  let n = 0;
+  for (const [body, g] of groups) {
+    const ratio = g.en ? g.es / g.en : 1;
+    if (!fit || ratio <= 1.05) continue;
+    const bp = Array.from(body.childNodes).find((c) => c.localName === 'bodyPr');
+    if (!bp) continue;
+    for (const c of Array.from(bp.childNodes)) if (['noAutofit', 'normAutofit', 'spAutoFit'].includes(c.localName)) bp.removeChild(c);
+    const na = bp.ownerDocument.createElementNS(NS.A, 'a:normAutofit');
+    na.setAttribute('fontScale', String(Math.round(clamp(1 / Math.sqrt(ratio), 0.6, 1) * 40) * 2500));
+    if (ratio > 1.2) na.setAttribute('lnSpcReduction', '10000');
+    const before = Array.from(bp.childNodes).find((c) => ['scene3d', 'sp3d', 'flatTx', 'extLst'].includes(c.localName));
+    bp.insertBefore(na, before || null);
+    n++;
+  }
+  rec.fitted = n;
+}
+function layoutVsdx(P, rec, fit) {
+  const groups = new Map();
+  for (const u of P.units) { if (!u.shape) continue; const g = groups.get(u.shape) || { en: 0, es: 0 }; g.en += u.src.length; g.es += (u.out ?? u.src).length; groups.set(u.shape, g); }
+  let resized = 0, check = 0;
+  for (const [shape, g] of groups) {
+    const ratio = g.en ? g.es / g.en : 1;
+    if (!fit || ratio <= 1.1) continue;
+    const f = clamp(1 / Math.sqrt(ratio), 0.75, 1);
+    const sec = Array.from(shape.childNodes).find((c) => c.localName === 'Section' && c.getAttribute('N') === 'Character');
+    const cells = sec ? Array.from(sec.getElementsByTagNameNS(NS.V, 'Cell')).filter((c) => c.getAttribute('N') === 'Size' && c.getAttribute('V') && !isNaN(+c.getAttribute('V'))) : [];
+    if (cells.length) { for (const c of cells) c.setAttribute('V', (+c.getAttribute('V') * f).toFixed(4)); resized++; }
+    else if (ratio > 1.25) check++;
+  }
+  rec.fitted = resized; rec.toCheck = check;
+}
+
+async function buildOutput(rec) {
+  const P = await parseOffice(rec); // always start from the original file
+  for (const u of P.units) {
+    const core = u.src.trim();
+    const t = S.tm.get(core);
+    if (t && t.es) { u.out = t.es; applyUnit(u, t.es); }
+  }
+  const fit = $('#optFit').checked;
+  if (rec.type === 'docx') await layoutDocx(P, rec, fit);
+  if (rec.type === 'pptx') layoutPptx(P, rec, fit);
+  if (rec.type === 'vsdx') layoutVsdx(P, rec, fit);
+  const ser = new XMLSerializer();
+  for (const p of P.parts) {
+    let s = ser.serializeToString(p.doc);
+    if (p.decl && !/^\s*<\?xml/.test(s)) s = p.decl + '\r\n' + s;
+    P.zip.file(p.name, s);
+  }
+  rec.out = await P.zip.generateAsync({ type: 'blob', mimeType: MIME[rec.type], compression: 'DEFLATE', compressionOptions: { level: 6 } });
+  rec.dirty = false;
+}
+
+/* =========================================================================
+   Queue and processing
+   ========================================================================= */
+function addFiles(list) {
+  for (const f of list) {
+    const ext = (f.name.split('.').pop() || '').toLowerCase();
+    if (!PARTS[ext]) { toast(f.name + ': only .docx, .xlsx, .pptx and .vsdx are supported'); continue; }
+    const rec = { id: Math.random().toString(36).slice(2), name: f.name, type: ext, file: f, status: 'waiting', done: 0, total: 0 };
+    S.files.push(rec);
+  }
+  renderQueue();
+  if (!enginesReady()) { toast('Set up the engines first. Your files are waiting in the list.'); $('#setupBtn').focus(); return; }
+  runQueue();
+}
+async function runQueue() {
+  if (S.busy || !enginesReady()) return;
+  S.busy = true;
+  try {
+    for (const rec of S.files) if (rec.status === 'waiting') await processFile(rec);
+  } finally { S.busy = false; }
+}
+async function processFile(rec) {
+  S.job = { active: true, net: 0, urls: [] }; renderBadge();
+  try {
+    rec.status = 'reading'; renderQueue();
+    rec.buf = await rec.file.arrayBuffer();
+    const P = await parseOffice(rec);
+    rec.notes = P.notes;
+    // Unique lines in order of appearance
+    const order = new Map();
+    for (const u of P.units) { const k = u.src.trim(); if (!k) continue; const o = order.get(k); if (o) o.count++; else order.set(k, { src: k, loc: u.loc, count: 1, translate: needsTranslation(k) }); }
+    rec.rows = Array.from(order.values());
+    const todo = rec.rows.filter((r) => r.translate);
+    rec.total = todo.length; rec.done = 0; rec.status = 'translating';
+    const useTM = $('#optTM').checked;
+    const totalChars = todo.reduce((a, r) => a + r.src.length, 0); let doneChars = 0; const t0 = Date.now(); let workChars = 0;
+    for (const r of todo) {
+      const hit = S.tm.get(r.src);
+      if (hit && (hit.status === 'approved' || useTM)) { rec.done++; doneChars += r.src.length; updateProgress(rec); continue; }
+      const res = await translateSegment(r.src);
+      tmPut(res);
+      rec.done++; doneChars += r.src.length; workChars += r.src.length;
+      const el = (Date.now() - t0) / 1000;
+      rec.eta = workChars > 200 ? (el / workChars) * (totalChars - doneChars) : null;
+      updateProgress(rec);
+    }
+    // Lines with nothing to translate (codes, numbers) are copied as they are
+    rec.status = 'building'; renderQueue();
+    await buildOutput(rec);
+    rec.status = 'done';
+    rec.netDuring = S.job.net;
+  } catch (e) {
+    console.error(e); rec.status = 'error'; rec.error = e.message || String(e);
+  } finally {
+    S.job.active = false; S.job.done = true; renderBadge(); renderQueue();
+    if (rec.status === 'done' && (!S.current || S.current === rec.id)) openReview(rec.id);
+  }
+}
+let progT = 0;
+function updateProgress(rec) { const now = Date.now(); if (now - progT < 250 && rec.done < rec.total) return; progT = now; renderQueue(); }
+
+function fileStats(rec) {
+  const rows = (rec.rows || []).filter((r) => r.translate);
+  let ok = 0, review = 0, error = 0, approved = 0, wOk = 0, wAll = 0, scores = [];
+  for (const r of rows) {
+    const t = S.tm.get(r.src); if (!t) continue;
+    const s = sevOf(t); const w = r.src.length * r.count; wAll += w;
+    if (s === 'approved') { approved++; wOk += w; } else if (s === 'ok') { ok++; wOk += w; } else if (s === 'review') review++; else error++;
+    if (t.score !== null && t.score !== undefined && wordsOf(r.src).length > 3) scores.push(t.score);
+  }
+  const conf = wAll ? Math.round((wOk / wAll) * 100) : 100;
+  const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+  return { lines: rows.length, total: rows.reduce((a, r) => a + r.count, 0), ok, review, error, approved, conf, avg, untouched: (rec.rows || []).length - rows.length };
+}
+function confColor(c) { return c >= 95 ? ['var(--ok-soft)', 'var(--ok)'] : c >= 85 ? ['var(--warn-soft)', 'var(--warn)'] : ['var(--err-soft)', 'var(--err)']; }
+
+function renderQueue() {
+  const q = $('#queue');
+  q.innerHTML = S.files.map((r) => {
+    let st = '', right = '', bar = '';
+    if (r.status === 'waiting') st = enginesReady() ? 'Waiting' : 'Waiting for the engines to be set up';
+    else if (r.status === 'reading') st = 'Reading the file…';
+    else if (r.status === 'translating') {
+      st = `Translating line ${Math.min(r.done + 1, r.total)} of ${r.total}` + (r.eta ? ` · about ${fmtDur(r.eta)} left` : '');
+      bar = `<div class="bar"><i style="width:${r.total ? Math.round((r.done / r.total) * 100) : 0}%"></i></div>`;
+    } else if (r.status === 'building') st = 'Rebuilding the file…';
+    else if (r.status === 'error') st = '<span style="color:var(--err)">Couldn\'t translate this file: ' + esc(r.error) + '</span>';
+    else if (r.status === 'done') {
+      const s = fileStats(r); const [bg, fg] = confColor(s.conf);
+      st = `${s.lines} lines translated · ${s.review + s.error ? `<b style="color:var(--warn)">${s.review + s.error} need a look</b>` : '<b style="color:var(--ok)">nothing flagged</b>'}` + (r.dirty ? ' · <b>changes not yet in the file</b>' : '');
+      right = `<div class="row"><div class="score" style="background:${bg};color:${fg}" title="Share of text that passed every check">${s.conf}%</div>
+        <button data-act="review" data-id="${r.id}">Review</button><button class="primary" data-act="dl" data-id="${r.id}">Download</button></div>`;
+    }
+    if (r.status !== 'done') right = r.status === 'waiting' ? `<button class="ghost" data-act="remove" data-id="${r.id}">Remove</button>` : '';
+    return `<div class="fcard ${S.current === r.id ? 'sel' : ''}"><span class="ft ${r.type}">${({ docx: 'Word', xlsx: 'Excel', pptx: 'PowerPoint', vsdx: 'Visio' })[r.type]}</span>
+      <div style="min-width:0"><div class="nm" title="${esc(r.name)}">${esc(r.name)}</div><div class="st">${st}</div>${bar}</div>${right}</div>`;
+  }).join('');
+}
+$('#queue').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const rec = S.files.find((x) => x.id === b.dataset.id); if (!rec) return;
+  if (b.dataset.act === 'review') openReview(rec.id);
+  if (b.dataset.act === 'dl') downloadOut(rec);
+  if (b.dataset.act === 'remove') { S.files = S.files.filter((x) => x !== rec); renderQueue(); }
+});
+function fmtDur(s) { s = Math.round(s); if (s < 60) return s + ' sec'; const m = Math.round(s / 60); if (m < 60) return m + ' min'; return Math.floor(m / 60) + ' h ' + (m % 60) + ' min'; }
+function outName(rec) { const i = rec.name.lastIndexOf('.'); return rec.name.slice(0, i) + '_ES-MX' + rec.name.slice(i); }
+async function downloadOut(rec) {
+  if (rec.dirty) { await buildOutput(rec); renderQueue(); renderReview(); }
+  saveBlob(rec.out, outName(rec));
+}
+function saveBlob(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
+
+/* =========================================================================
+   Review panel
+   ========================================================================= */
+function openReview(id) { S.current = id; S.shown = 50; S.filter = 'attention'; const rec = cur(); if (rec && fileStats(rec).review + fileStats(rec).error === 0) S.filter = 'all'; renderQueue(); renderReview(); $('#review').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+const cur = () => S.files.find((x) => x.id === S.current);
+
+function renderReview() {
+  const rec = cur(); const box = $('#review');
+  if (!rec || rec.status !== 'done') { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  const s = fileStats(rec);
+  $('#rvTitle').textContent = 'Review · ' + rec.name;
+  $('#rvSub').textContent = `${s.total} text pieces, ${s.lines} unique lines translated` + (s.untouched ? `, ${s.untouched} left as is (codes or numbers only)` : '');
+  $('#btnRebuild').classList.toggle('hidden', !rec.dirty);
+  const [bg, fg] = confColor(s.conf);
+  const label = s.conf >= 95 ? 'High' : s.conf >= 85 ? 'Good, check the flagged lines' : 'Needs a Spanish reviewer';
+  const m = [
+    `<div class="metric" style="background:${bg}"><div class="l" style="color:${fg}">Confidence</div><div class="v" style="color:${fg}">${s.conf}%</div><div class="s" style="color:${fg}">${label}</div></div>`,
+    `<div class="metric"><div class="l">Average check score</div><div class="v">${s.avg ?? '–'}</div><div class="s">Back-translation, lines over 3 words</div></div>`,
+    `<div class="metric"><div class="l">Need a look</div><div class="v" style="color:${s.review ? 'var(--warn)' : 'inherit'}">${s.review}</div><div class="s">Possible meaning or term issue</div></div>`,
+    `<div class="metric"><div class="l">Errors</div><div class="v" style="color:${s.error ? 'var(--err)' : 'inherit'}">${s.error}</div><div class="s">Number, code or untranslated</div></div>`,
+    `<div class="metric"><div class="l">Approved by you</div><div class="v">${s.approved}</div><div class="s">Saved to memory</div></div>`,
+  ];
+  if (rec.type === 'docx' && rec.srcPages) {
+    const pct = Math.round((rec.estPages / rec.srcPages) * 100);
+    m.push(`<div class="metric"><div class="l">Pages (estimate)</div><div class="v">${rec.srcPages} → ${rec.estPages}</div><div class="s">${pct}% of original${rec.fontFactor < 0.999 ? ` · font ${Math.round(rec.fontFactor * 100)}%` : ''}</div></div>`);
+  }
+  if (rec.type === 'pptx') m.push(`<div class="metric"><div class="l">Text boxes fitted</div><div class="v">${rec.fitted || 0}</div><div class="s">Shrink-to-fit applied</div></div>`);
+  if (rec.type === 'vsdx') m.push(`<div class="metric"><div class="l">Shapes resized</div><div class="v">${rec.fitted || 0}</div><div class="s">${rec.toCheck ? rec.toCheck + ' to check by eye' : 'Text fitted to shapes'}</div></div>`);
+  $('#rvMetrics').innerHTML = m.join('');
+
+  const notes = [...(rec.notes || [])];
+  if (rec.type === 'docx' && rec.ratio) notes.push({ text: `Spanish text is ${Math.round((rec.ratio - 1) * 100)}% longer than the English.` + (rec.fontFactor < 0.999 ? ` Font and paragraph spacing were reduced to ${Math.round(rec.fontFactor * 100)}% to keep the page count close. Word recalculates pages when you open the file.` : $('#optFit').checked ? ' No size change was needed.' : ' Font size was not changed (option is off).') });
+  if (rec.type === 'docx' && rec.srcPages && rec.estPages / rec.srcPages > 1.03) notes.push({ warn: true, text: 'Estimated pages are more than 3% above the original even after tightening. Open the file and check page breaks.' });
+  if (rec.type === 'vsdx' && rec.toCheck) notes.push({ warn: true, text: `${rec.toCheck} shape(s) got much longer text and use the master's font size, so they couldn't be resized automatically. Open the drawing and check them.` });
+  if (rec.type === 'xlsx' && (rec.hasFormulas || rec.hasValidation)) notes.push({ warn: true, text: 'This workbook has formulas' + (rec.hasValidation ? ' and drop-down lists' : '') + '. If any formula or list depends on text values (for example "Yes"/"No"), check it still works after translation.' });
+  if (rec.netDuring) notes.push({ warn: true, text: `${rec.netDuring} network request(s) were made while translating (engine or library files, not your document).` });
+  $('#rvNotes').innerHTML = notes.map((n) => `<li class="${n.warn ? 'warn' : ''}">${esc(n.text)}</li>`).join('');
+
+  const counts = { attention: s.review + s.error, error: s.error, review: s.review, approved: s.approved, all: s.lines };
+  const chips = [['attention', 'Needs attention'], ['error', 'Errors'], ['review', 'Review'], ['approved', 'Approved'], ['all', 'All lines']];
+  $('#rvChips').innerHTML = chips.map(([k, l]) => `<button class="chip" aria-pressed="${S.filter === k}" data-f="${k}">${l} · ${counts[k]}</button>`).join('');
+  renderRows(rec);
+}
+function filteredRows(rec) {
+  const q = norm(S.search || '');
+  return rec.rows.map((r, i) => ({ r, i, t: S.tm.get(r.src) })).filter(({ r, t }) => {
+    if (!r.translate || !t) return false;
+    const s = sevOf(t);
+    if (S.filter === 'attention' && !(s === 'error' || s === 'review')) return false;
+    if (S.filter === 'error' && s !== 'error') return false;
+    if (S.filter === 'review' && s !== 'review') return false;
+    if (S.filter === 'approved' && s !== 'approved') return false;
+    if (q && !norm(r.src).includes(q) && !norm(t.es).includes(q)) return false;
+    return true;
+  });
+}
+function scoreCell(t, words) {
+  if (t.score === null || t.score === undefined) return '<span class="faint">–</span>';
+  const c = words <= 3 ? 'var(--faint)' : t.score >= +$('#optThr').value ? 'var(--ok)' : t.score >= +$('#optThr').value - 15 ? 'var(--warn)' : 'var(--err)';
+  return `<b style="color:${c}">${t.score}</b><div class="sbar"><i style="width:${t.score}%;background:${c}"></i></div>`;
+}
+function renderRows(rec) {
+  const rows = filteredRows(rec);
+  const tb = $('#rvTable tbody');
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:28px" class="muted">${S.filter === 'attention' ? 'Nothing needs attention. Every line passed the checks.' : 'No lines match.'}</td></tr>`;
+    $('#btnMore').classList.add('hidden'); return;
+  }
+  tb.innerHTML = rows.slice(0, S.shown).map(({ r, i, t }) => {
+    const sev = sevOf(t);
+    const flags = sev === 'approved' ? '<span class="flag f-ok">Approved</span>' : (t.flags || []).length ? t.flags.map((f) => `<span class="flag f-${f.sev}" title="${esc(f.text)}">${esc(f.text)}</span>`).join('') : '<span class="flag f-ok">Passed</span>';
+    return `<tr data-src="${esc(r.src)}">
+      <td><div>${i + 1}</div><div class="loc">${esc(r.loc)}${r.count > 1 ? ' ×' + r.count : ''}</div></td>
+      <td>${esc(r.src).replace(/\n/g, '<br>')}</td>
+      <td class="es" tabindex="0" title="Click to edit">${esc(t.es).replace(/\n/g, '<br>')}</td>
+      <td class="muted">${esc(t.back || '').replace(/\n/g, '<br>')}</td>
+      <td>${scoreCell(t, wordsOf(r.src).length)}</td>
+      <td>${flags}</td>
+      <td>${sev === 'approved' ? '<button class="small ghost" data-a="unapprove">Undo</button>' : '<button class="small" data-a="approve">Approve</button>'}</td></tr>`;
+  }).join('');
+  $('#btnMore').classList.toggle('hidden', rows.length <= S.shown);
+  $('#btnMore').textContent = `Show more lines (${rows.length - S.shown} more)`;
+}
+$('#rvChips').addEventListener('click', (e) => { const b = e.target.closest('[data-f]'); if (!b) return; S.filter = b.dataset.f; S.shown = 50; renderReview(); });
+$('#rvSearch').addEventListener('input', (e) => { S.search = e.target.value; S.shown = 50; const r = cur(); if (r) renderRows(r); });
+$('#btnMore').addEventListener('click', () => { S.shown += 100; renderRows(cur()); });
+$('#rvTable').addEventListener('click', (e) => {
+  const tr = e.target.closest('tr[data-src]'); if (!tr) return;
+  const src = tr.dataset.src, t = S.tm.get(src); if (!t) return;
+  const a = e.target.closest('button[data-a]');
+  if (a) {
+    if (a.dataset.a === 'approve') { t.status = 'approved'; tmPut(t); }
+    else { t.status = 'machine'; tmPut(t); }
+    markDirty(src); return;
+  }
+  const td = e.target.closest('td.es');
+  if (td && !td.querySelector('textarea')) editCell(td, src);
+});
+$('#rvTable').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('td.es')) { e.preventDefault(); editCell(e.target, e.target.closest('tr').dataset.src); } });
+function editCell(td, src) {
+  const t = S.tm.get(src);
+  td.innerHTML = `<textarea aria-label="Spanish translation">${esc(t.es)}</textarea><div class="row" style="margin-top:6px"><button class="small primary" data-e="save">Save and approve</button><button class="small ghost" data-e="cancel">Cancel</button></div>`;
+  const ta = td.querySelector('textarea'); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+  td.onclick = async (e) => {
+    e.stopPropagation();
+    const b = e.target.closest('button[data-e]'); if (!b) return;
+    if (b.dataset.e === 'cancel') { td.onclick = null; renderRows(cur()); return; }
+    b.disabled = true; b.textContent = 'Checking…';
+    await saveCorrection(src, ta.value);
+    td.onclick = null;
+  };
+}
+async function saveCorrection(src, es, approvedOnly) {
+  const t = S.tm.get(src) || { src };
+  if (es !== undefined && es.trim() && es.trim() !== (t.es || '').trim()) {
+    t.es = es.trim();
+    try { t.back = (await engineBack(t.es)) || t.back; } catch {}
+    const c = runChecks(src, t.es, t.back); t.flags = c.flags; t.score = c.score;
+  }
+  t.status = 'approved'; tmPut(t);
+  if (!approvedOnly) markDirty(src);
+}
+function markDirty(src) {
+  for (const rec of S.files) if (rec.status === 'done' && rec.rows?.some((r) => r.src === src)) rec.dirty = true;
+  renderQueue(); renderReview();
+}
+$('#btnRebuild').addEventListener('click', async () => { const rec = cur(); if (!rec) return; $('#btnRebuild').disabled = true; await buildOutput(rec); $('#btnRebuild').disabled = false; renderQueue(); renderReview(); toast('File rebuilt with your changes'); });
+$('#btnDownload').addEventListener('click', () => { const r = cur(); if (r) downloadOut(r); });
+
+/* ---------- Review sheet (Excel) ---------- */
+$('#btnSheet').addEventListener('click', () => {
+  const rec = cur(); if (!rec) return;
+  const s = fileStats(rec);
+  const rows = rec.rows.filter((r) => r.translate).map((r, i) => {
+    const t = S.tm.get(r.src) || {};
+    const sev = sevOf(t);
+    return { '#': i + 1, Where: r.loc, Times: r.count, English: r.src, Spanish: t.es || '', 'Back to English': t.back || '', Score: t.score ?? '', Result: { ok: 'Passed', review: 'Review', error: 'Error', approved: 'Approved' }[sev], Flags: (t.flags || []).map((f) => f.text).join('; '), 'Corrected Spanish': '', 'Approved (Y/N)': sev === 'approved' ? 'Y' : '' };
+  });
+  rows.sort((a, b) => ({ Error: 0, Review: 1, Passed: 2, Approved: 3 }[a.Result] - { Error: 0, Review: 1, Passed: 2, Approved: 3 }[b.Result]) || a['#'] - b['#']);
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [{ wch: 5 }, { wch: 10 }, { wch: 6 }, { wch: 50 }, { wch: 50 }, { wch: 45 }, { wch: 7 }, { wch: 10 }, { wch: 40 }, { wch: 50 }, { wch: 13 }];
+  ws['!autofilter'] = { ref: ws['!ref'] };
+  XLSX.utils.book_append_sheet(wb, ws, 'Review');
+  const sum = [
+    ['File', rec.name], ['Translated to', 'Spanish (Mexico)'], ['Date', new Date().toLocaleString()], ['Engine', S.mode === 'fast' ? 'Edge built-in (fast)' : 'TranslateGemma 4B, checked by Edge built-in'],
+    ['Confidence', s.conf + '%'], ['Unique lines', s.lines], ['Passed', s.ok], ['Need review', s.review], ['Errors', s.error], ['Approved', s.approved], ['Average check score', s.avg ?? ''],
+    rec.srcPages ? ['Pages (original → estimate)', `${rec.srcPages} → ${rec.estPages}`] : ['', ''],
+    [], ['How to review', 'Look at rows marked Error or Review first. Type a fix in "Corrected Spanish", or put Y in "Approved (Y/N)" if the Spanish is right. Save and send the file back.'],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(sum); ws2['!cols'] = [{ wch: 28 }, { wch: 90 }];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+  const i = rec.name.lastIndexOf('.');
+  XLSX.writeFile(wb, rec.name.slice(0, i) + '_ES-MX_review.xlsx');
+});
+$('#btnImport').addEventListener('click', () => $('#sheetIn').click());
+$('#sheetIn').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const wb = XLSX.read(await f.arrayBuffer());
+    const ws = wb.Sheets['Review'] || wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    let fixed = 0, appr = 0;
+    for (const r of rows) {
+      const src = String(r.English || '').trim(); if (!src) continue;
+      const corr = String(r['Corrected Spanish'] || '').trim();
+      const ok = /^(y|yes|si|sí|ok)$/i.test(String(r['Approved (Y/N)'] || '').trim());
+      if (corr) { await saveCorrection(src, corr, true); fixed++; }
+      else if (ok && S.tm.get(src)) { const t = S.tm.get(src); if (t.status !== 'approved') { t.status = 'approved'; tmPut(t); appr++; } }
+    }
+    for (const rec of S.files) if (rec.status === 'done') rec.dirty = true;
+    renderQueue(); renderReview();
+    toast(`Imported: ${fixed} corrected, ${appr} approved. Click "Rebuild file" to apply.`);
+  } catch (err) { toast('Couldn\'t read that sheet: ' + err.message); }
+});
+
+/* =========================================================================
+   Glossary tab
+   ========================================================================= */
+function renderGlossary() {
+  const q = norm($('#gSearch').value || '');
+  const rows = S.glossary.map((g, i) => ({ g, i })).filter(({ g }) => !q || norm(g.en + ' ' + g.es).includes(q));
+  $('#gCount').textContent = `${S.glossary.length} terms`;
+  $('#gBody').innerHTML = rows.map(({ g, i }) => `<tr data-i="${i}">
+    <td><input type="text" data-k="en" value="${esc(g.en)}" aria-label="English term"></td>
+    <td><select data-k="rule" aria-label="Rule"><option value="fixed" ${g.rule === 'fixed' ? 'selected' : ''}>Translate as</option><option value="keep" ${g.rule === 'keep' ? 'selected' : ''}>Keep as is</option></select></td>
+    <td><input type="text" data-k="es" value="${esc(g.es)}" ${g.rule === 'keep' ? 'disabled placeholder="Stays in English"' : 'placeholder="Spanish term"'} aria-label="Spanish term"></td>
+    <td><button class="small ghost" data-del aria-label="Delete term">Delete</button></td></tr>`).join('');
+}
+$('#gBody').addEventListener('input', (e) => { const tr = e.target.closest('tr'); const g = S.glossary[+tr.dataset.i]; g[e.target.dataset.k] = e.target.value; saveGlossary(); if (e.target.dataset.k === 'rule') renderGlossary(); });
+$('#gBody').addEventListener('click', (e) => { if (!e.target.closest('[data-del]')) return; S.glossary.splice(+e.target.closest('tr').dataset.i, 1); saveGlossary(); renderGlossary(); });
+$('#gSearch').addEventListener('input', renderGlossary);
+$('#gAdd').addEventListener('click', () => { S.glossary.unshift({ en: '', rule: 'fixed', es: '' }); saveGlossary(); $('#gSearch').value = ''; renderGlossary(); $('#gBody input').focus(); });
+$('#gReset').addEventListener('click', () => { if (!confirmInline('#gReset', 'Click again to reset')) return; S.glossary = STARTER_GLOSSARY.map((x) => ({ ...x })); saveGlossary(); renderGlossary(); toast('Starter list restored'); });
+$('#gExport').addEventListener('click', () => {
+  const ws = XLSX.utils.json_to_sheet(S.glossary.filter((g) => g.en.trim()).map((g) => ({ English: g.en, Rule: g.rule === 'keep' ? 'Keep as is' : 'Translate as', Spanish: g.es })));
+  ws['!cols'] = [{ wch: 36 }, { wch: 14 }, { wch: 36 }];
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Glossary'); XLSX.writeFile(wb, 'Glossary_EN-ES-MX.xlsx');
+});
+$('#gImport').addEventListener('click', () => $('#gIn').click());
+$('#gIn').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const wb = XLSX.read(await f.arrayBuffer()); const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
+    let n = 0;
+    for (const r of rows) {
+      const en = String(r.English || r.english || r.EN || '').trim(); if (!en) continue;
+      const es = String(r.Spanish || r.spanish || r.ES || '').trim();
+      const rule = /keep/i.test(String(r.Rule || '')) || !es ? 'keep' : 'fixed';
+      const ex = S.glossary.find((g) => g.en.toLowerCase() === en.toLowerCase());
+      if (ex) { ex.es = es; ex.rule = rule; } else S.glossary.push({ en, rule, es });
+      n++;
+    }
+    saveGlossary(); renderGlossary(); toast(`${n} terms imported`);
+  } catch (err) { toast('Couldn\'t read that file: ' + err.message); }
+});
+function confirmInline(sel, text) {
+  const b = $(sel); if (b.dataset.arm) { delete b.dataset.arm; b.textContent = b.dataset.orig; return true; }
+  b.dataset.arm = 1; b.dataset.orig = b.textContent; b.textContent = text;
+  setTimeout(() => { if (b.dataset.arm) { delete b.dataset.arm; b.textContent = b.dataset.orig; } }, 3500);
+  return false;
+}
+
+/* =========================================================================
+   Memory tab
+   ========================================================================= */
+function renderMemory() {
+  const all = Array.from(S.tm.values());
+  const ap = all.filter((x) => x.status === 'approved').length;
+  $('#mMetrics').innerHTML = `<div class="metric"><div class="l">Saved lines</div><div class="v">${all.length}</div></div><div class="metric"><div class="l">Approved or corrected</div><div class="v">${ap}</div></div><div class="metric"><div class="l">Machine translated</div><div class="v">${all.length - ap}</div></div>`;
+  const q = norm($('#mSearch').value || '');
+  const rows = all.filter((x) => !q || norm(x.src + ' ' + x.es).includes(q)).sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, 200);
+  $('#mBody').innerHTML = rows.length ? rows.map((x) => `<tr><td>${esc(x.src)}</td><td>${esc(x.es)}</td><td>${x.status === 'approved' ? '<span class="flag f-ok">Approved</span>' : '<span class="flag f-info">Machine</span>'}</td></tr>`).join('') : '<tr><td colspan="3" class="muted" style="text-align:center;padding:24px">Nothing saved yet. Translated lines appear here.</td></tr>';
+}
+$('#mSearch').addEventListener('input', renderMemory);
+$('#mExport').addEventListener('click', () => saveBlob(new Blob([JSON.stringify(Array.from(S.tm.values()), null, 1)], { type: 'application/json' }), 'TranslationMemory_EN-ES-MX.json'));
+$('#mImport').addEventListener('click', () => $('#mIn').click());
+$('#mIn').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const arr = JSON.parse(await f.text()); let n = 0;
+    for (const x of arr) { if (!x.src || !x.es) continue; const ex = S.tm.get(x.src); if (ex && ex.status === 'approved' && x.status !== 'approved') continue; tmPut({ ...x }); n++; }
+    renderMemory(); toast(`${n} lines imported`);
+  } catch (err) { toast('Couldn\'t read that file: ' + err.message); }
+});
+$('#mClearMachine').addEventListener('click', () => { if (!confirmInline('#mClearMachine', 'Click again to confirm')) return; for (const [k, v] of S.tm) if (v.status !== 'approved') { S.tm.delete(k); DB.del(k); } renderMemory(); toast('Machine lines removed. Approved lines kept.'); });
+$('#mClear').addEventListener('click', () => { if (!confirmInline('#mClear', 'Click again to clear everything')) return; S.tm.clear(); DB.clear(); renderMemory(); toast('Translation memory cleared'); });
+
+/* =========================================================================
+   Wiring
+   ========================================================================= */
+$$('nav.tabs button').forEach((b) => b.addEventListener('click', () => {
+  $$('nav.tabs button').forEach((x) => x.setAttribute('aria-selected', x === b));
+  for (const t of ['translate', 'glossary', 'memory', 'help']) $('#tab-' + t).classList.toggle('hidden', t !== b.dataset.tab);
+  if (b.dataset.tab === 'glossary') renderGlossary();
+  if (b.dataset.tab === 'memory') renderMemory();
+}));
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', (e) => addFiles(e.dataTransfer.files));
+$('#fileIn').addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
+$('#optThr').addEventListener('input', (e) => {
+  $('#thrVal').textContent = e.target.value; localStorage.setItem('mxtr.thr', e.target.value);
+  for (const t of S.tm.values()) if (t.back !== undefined && t.status !== 'approved') { const keep = (t.flags || []).filter((f) => ['protect', 'glossary-applied', 'self'].includes(f.code)); t.flags = dedupeFlags([...runChecks(t.src, t.es, t.back).flags, ...keep]); }
+  renderQueue(); renderReview();
+});
+$('#optFit').addEventListener('change', () => { localStorage.setItem('mxtr.fit', $('#optFit').checked ? '1' : '0'); for (const r of S.files) if (r.status === 'done') r.dirty = true; renderQueue(); renderReview(); });
+$('#mode').addEventListener('change', (e) => { S.mode = e.target.value; localStorage.setItem('mxtr.mode', S.mode); $('#setupBtn').textContent = enginesReady() ? 'Engines ready' : 'Set up engines'; renderBadge(); if (enginesReady()) runQueue(); });
+$('#setupBtn').addEventListener('click', () => setupAll(true));
+
+(async function init() {
+  $('#mode').value = S.mode;
+  const thr = localStorage.getItem('mxtr.thr'); if (thr) { $('#optThr').value = thr; $('#thrVal').textContent = thr; }
+  if (localStorage.getItem('mxtr.fit') === '0') $('#optFit').checked = false;
+  S.glossary = loadGlossary();
+  await DB.open();
+  for (const r of await DB.all()) S.tm.set(r.src, r);
+  if (!MOCK && !edgeSupported()) envMsg('This browser doesn\'t have the built-in translator used for checking. Open this page in <b>Microsoft Edge 148 or later</b> (Settings → About to check your version).');
+  // If the engines were set up before, start them automatically
+  if (MOCK) { await setupAll(false); return; }
+  const edgeOk = await setupEdge(false);
+  if (S.mode === 'accurate' && await gemmaCached()) await setupAll(false);
+  else if (S.mode === 'fast' && edgeOk) { $('#setupBtn').textContent = 'Engines ready'; renderBadge(); }
+  renderBadge();
+})();
+</script>
+</body>
+</html>
