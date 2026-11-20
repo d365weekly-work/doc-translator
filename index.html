@@ -426,10 +426,34 @@ async function run(text, src, tgt, maxTokens) {
     return await tryOnce(s2, t2);
   }
 }
+// The engine runtime (two files, ~27 MB) comes from a code CDN the first time, then from the browser cache.
+// Pick a host that works: already cached first, then jsDelivr, then unpkg.
+async function pickRuntime() {
+  const ORT = env.backends.onnx;
+  const v = ORT && ORT.versions && ORT.versions.web;
+  if (!v || !ORT.wasm) return;
+  const name = 'ort-wasm-simd-threaded.asyncify';
+  const hosts = ['https://cdn.jsdelivr.net/npm/onnxruntime-web@' + v + '/dist/', 'https://unpkg.com/onnxruntime-web@' + v + '/dist/'];
+  const use = (h) => { ORT.wasm.wasmPaths = { mjs: h + name + '.mjs', wasm: h + name + '.wasm' }; };
+  try {
+    const c = await caches.open('transformers-cache');
+    for (const h of hosts) if (await c.match(h + name + '.wasm')) { use(h); return; }
+  } catch (e) {}
+  const errs = [];
+  for (const h of hosts) {
+    try {
+      const r = await fetch(h + name + '.mjs', { cache: 'no-store' });
+      if (r.ok) { use(h); return; }
+      errs.push(new URL(h).host + ' answered ' + r.status);
+    } catch (e) { errs.push(new URL(h).host + ' unreachable'); }
+  }
+  throw new Error('RUNTIME_BLOCKED: the engine runtime could not be downloaded (' + errs.join(', ') + '). Your network or firewall may be blocking cdn.jsdelivr.net and unpkg.com.');
+}
 self.onmessage = async (e) => {
   const m = e.data;
   if (m.type === 'load') {
     try {
+      await pickRuntime();
       gen = await pipeline('text-generation', m.model, { dtype: 'q4', device: 'webgpu',
         progress_callback: (p) => self.postMessage({ type: 'progress', p }) });
       await run('Hello', 'en', 'es', 8);
@@ -452,8 +476,10 @@ class GemmaEngine {
           const p = m.p;
           if (p.status === 'progress' && p.total) { this.files[p.file] = { loaded: p.loaded, total: p.total }; }
           if (p.status === 'done' && this.files[p.file]) this.files[p.file].loaded = this.files[p.file].total;
-          const f = Object.values(this.files), L = f.reduce((a, x) => a + x.loaded, 0), T = f.reduce((a, x) => a + x.total, 0);
-          onProgress(T ? L / T : 0, L, T, p.status);
+          const f = Object.values(this.files), L = f.reduce((a, x) => a + x.loaded, 0);
+          // Measure against the full engine size from the start, so the bar never races ahead and jumps back
+          const T = Math.max(f.reduce((a, x) => a + x.total, 0), 2.9e9);
+          onProgress(Math.min(1, L / T), L, T, p.status);
         } else if (m.type === 'ready') resolve();
         else if (m.type === 'error') reject(new Error(m.error));
         else if (m.type === 'result') {
@@ -546,7 +572,17 @@ async function setupGemma() {
     return true;
   } catch (e) {
     setPill('#stGemma', 'b-err', 'Could not start');
-    envMsg('The translation engine couldn\'t start: ' + esc(e.message) + '<br>Close other heavy apps and try again. If it keeps failing, use <b>Fast</b> mode.', 'err');
+    $('#dlWrap').classList.add('hidden');
+    S.gemma?.w?.terminate();
+    const msg = String(e.message || e);
+    if (msg.startsWith('RUNTIME_BLOCKED')) {
+      envMsg('The engine downloaded, but its runtime files couldn\'t be fetched: ' + esc(msg.replace('RUNTIME_BLOCKED: ', '')) +
+        '<br>Try another network (for example, a phone hotspot) just for this one-time setup, or ask IT to allow <code>cdn.jsdelivr.net</code>. After setup, the tool works offline. Meanwhile you can use <b>Fast</b> mode.', 'err');
+    } else if (/fetch dynamically imported module|Failed to fetch/i.test(msg)) {
+      envMsg('A runtime file couldn\'t be loaded: ' + esc(msg) + '<br>Press <b>Ctrl+Shift+R</b> to reload the page fully, then click <b>Try again</b>. If it fails again, try another network (for example, a phone hotspot) for this one-time setup.', 'err');
+    } else {
+      envMsg('The translation engine couldn\'t start: ' + esc(msg) + '<br>Close other heavy apps and try again. If it keeps failing, use <b>Fast</b> mode.', 'err');
+    }
     return false;
   } finally { S.gemmaLoading = false; renderBadge(); }
 }
